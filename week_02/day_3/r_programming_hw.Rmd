@@ -1,0 +1,192 @@
+---
+title: "Programming in R Homework"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+#imports
+```{r}
+library(tidyverse)
+```
+
+# MVP
+
+<br> 
+
+**Question 1.** \
+```{r}
+weather_forecast <- list(
+  "Thursday" = list(
+    temperature = "11°",
+    chance_of_rain = "100%",
+    wind_speed = "15 km/h"
+  ),
+  "Friday" = list(
+    temperature = "10°",
+    chance_of_rain = "90%",
+    wind_speed = "13 km/h"
+  ),
+  "Saturday" = list(
+    temperature = "8°",
+    chance_of_rain = "50%",
+    wind_speed = "13 km/h"
+  )
+)
+
+weather_forecast
+```
+
+
+<br>
+
+**Question 2.** \
+```{r}
+# i
+weather_forecast$Thursday$chance_of_rain
+# ii
+weather_forecast$Friday$wind_speed
+# ii
+weather_forecast$Thursday$temperature
+```
+
+
+<br>
+
+**Question 3.** \
+
+```{r}
+
+temperature_list <- c(11, 10, 10, 9, 7, 7, 8, 8, 9, 9, 9, 9, 9, 9)
+forecast_fourteen_days <-
+  matrix(temperature_list, nrow = 2, ncol = 7, byrow = TRUE)
+rownames(forecast_fourteen_days) <- c("week_1", "week_2")
+colnames(forecast_fourteen_days) <- c(
+  "Monday", "Tuesday", "Wednesday",
+  "Thursday", "Friday", "Saturday", "Sunday"
+)
+
+forecast_fourteen_days
+```
+
+
+
+<br>
+
+**Question 4.** \
+
+```{r}
+# i
+forecast_fourteen_days[2, 3]
+# ii
+forecast_fourteen_days[2, ]
+# iii
+forecast_fourteen_days[c(1, 2), c(1, 3, 5)]
+```
+
+
+<br>
+
+**Question 5.** \
+
+```{r}
+
+question_5 <- function(input) {
+  if (is.character(input)) {
+    return(str_c("The answer is: ", input))
+  }
+
+  if (is.numeric(input)) {
+    if (input < 10) {
+      return(input)
+    } else {
+      return(input / 10)
+    }
+  }
+  return("Invalid input")
+}
+
+#tests
+question_5("string")
+question_5(5)
+question_5(11)
+question_5(FALSE)
+```
+
+
+<br>
+
+**Question 6.** \
+
+```{r}
+check_vectors <- function(x, y){
+  
+  #check if both vectors are identical
+  if(identical(x, y)){
+    return("Exactly the same")
+  }
+  
+  #check if order is different but the same values
+  if(identical(sort(x),sort(y)))
+  {
+    return("The same")
+  }
+  
+  return("Different")
+}
+
+#check function
+vector_1 <- c(1, 2, 3, 4)
+vector_2 <- c(1, 2, 3, 4, 5)
+vector_3 <- c(5, 4, 3, 2, 1)
+vector_4 <- c(1, 2, 3, 4)
+
+
+check_vectors(vector_1, vector_4)# identical
+check_vectors(vector_2, vector_3)# the same but reversed
+check_vectors(vector_1, vector_2)# different
+```
+
+
+
+<br>
+
+**Question 7.** \
+```{r}
+multiplication_table <- function(n){ 
+  seq.int(n) %o% seq.int(n) #?`%o%` - Outer Product of Arrays -
+}
+
+multiplication_table(10)
+```
+
+
+
+<br>
+
+**Question 8.** \
+```
+1 | ***
+2 | *
+3 | *******
+4 | ****
+5 | **
+```
+
+```{r}
+text_art_histogram <- function(vector){
+  for(i in vector){
+    cat("|")
+    cat(rep("*", i)) #replicates numeric values, or text, or the values of a vector for a specific number of times
+    cat("\n") #escape character for a newlne
+  }
+}
+
+text_art_histogram(c(1, 2, 3, 4, 5, 1, 3, 4, 5, 1, 3, 4, 4, 3, 3, 3, 3))
+```
+

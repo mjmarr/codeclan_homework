@@ -1,0 +1,97 @@
+---
+title: "1 MVP"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(janitor)
+```
+
+
+Question 1.
+
+```{r}
+movies <- read_csv("data/tmdb_5000_movies.csv", na='NA')
+```
+```{r}
+spec(movies)
+str(movies)
+glimpse(movies)
+head(movies, 5)
+names(movies)
+```
+
+
+
+Question 2.
+
+```{r}
+movies_selected <- movies %>% 
+  select(title, runtime, budget)
+```
+
+
+
+Question 3.
+
+Ok, now take your subsetted data movies_selected, and count the number of missing values in each column.
+```{r}
+#one method
+movies_selected %>%
+  select(everything()) %>%
+  summarise_all(funs(sum(is.na(.))))
+
+#trying map function?
+map(movies_selected, ~sum(is.na(.)))
+```
+
+Question 4.
+
+```{r}
+movies_runtime <- movies_selected %>%
+  mutate(runtime = na_if(runtime, '0'))
+
+movies_count <- movies_selected %>%
+  mutate(runtime = na_if(runtime, '0')) %>%
+  filter(is.na(runtime)) %>% 
+  count() %>% 
+  pull(-1)
+
+  #filter(is.na(runtime)) - 37
+movies_runtime
+```
+
+Question 5.
+
+```{r}
+movies_imputed <- movies_runtime %>% 
+  mutate(runtime = coalesce(runtime,
+                            median(runtime, na.rm = TRUE)))
+
+movies_imputed
+
+map(movies_imputed, ~sum(is.na(.)))
+```
+
+
+Question 6.
+
+```{r}
+ten_shortest_films <- movies_imputed %>% 
+  slice_min(runtime,n = 10)
+
+ten_longest_films <- movies_imputed %>% 
+  slice_max(runtime,n = 10)
+```
+
+
+
+Question 7.
+
+```{r}
+movies_imputed_two <- movies_imputed %>% 
+  mutate(budget = if_else(budget < 100, median(budget), budget)) 
+```
+

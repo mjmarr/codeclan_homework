@@ -1,0 +1,124 @@
+---
+title: "Dplyr Homework"
+output: html_notebook
+---
+
+# import libraries
+```{r}
+library(CodeClanData)
+library(tidyverse)
+library(skimr)
+```
+Data used - drinks_content
+
+Question 1.
+
+```{r}
+drinks_content
+colnames(drinks_content)
+summary(drinks_content)
+skim(drinks_content)
+```
+
+
+Question 2.
+
+```{r}
+#solution
+drinks_content %>%
+  select(Beverage_category, Beverage, Beverage_prep, Calories) %>%
+  filter(is.na(Calories)) %>%
+  summarise(count_of_missing_calories = n())
+```
+
+Question 3.
+
+Create a new variable (column) called calorie_diff, which stores the difference between 135 calories (135 calories = 10 cubes of sugar!) and the calories in each drink. (hint: you’ll want to subtract 135 from the calories to see which drink have more or less than 10 cups of sugar).
+```{r}
+#solution
+drink_calories <- drinks_content %>%
+  mutate(calorie_diff = Calories - 135)
+```
+
+Question 4.
+
+```{r}
+drinks_content %>% 
+  select(Beverage_category, Beverage, Beverage_prep, Calories) %>%
+  arrange(desc(Calories)) %>% 
+  group_by(Beverage_category) %>% 
+  top_n(1, Calories) %>%
+  head(3)
+
+drinks_content %>% 
+  select(Beverage_category, Beverage, Beverage_prep, Calories) %>%
+  group_by(Beverage_category) %>%
+  summarise(mean = mean(Calories)) %>%
+  arrange(desc(mean)) %>% 
+  head(3)
+
+#solution
+most_calories <- drink_calories %>%
+  group_by(Beverage_category) %>%
+  summarise(mean_calories = mean(Calories)) %>%
+  arrange(desc(mean_calories)) %>%
+  head(3)
+
+most_calories
+```
+
+Question 5.
+
+```{r}
+drinks_content %>% 
+  select(Beverage_category, Beverage, Beverage_prep, Calories) %>%
+  group_by(Beverage_prep) %>%
+  summarise(avg = mean(Calories)) %>%
+  arrange(desc(avg))
+
+#solution
+average_bev_prep <- drink_calories %>%
+  group_by(Beverage_prep) %>%
+  summarise(mean_cals = mean(Calories)) %>%
+  arrange(desc(mean_cals))
+
+average_bev_prep
+```
+
+Question 6.
+
+```{r}
+#solution
+avg_calories <- drink_calories %>%
+                  summarise(mean_calories = mean(Calories)) %>%
+                  pull()
+
+avg_calories
+
+above_avg_calories <- average_bev_prep %>%
+  filter(mean_cals >= avg_calories)
+
+above_avg_calories
+```
+
+
+
+Question 7.
+
+```{r}
+drinks_content %>% 
+  filter(Beverage_category != "Tazo® Tea Drinks") %>%
+  select(Beverage_category, Beverage, Beverage_prep, Calories) %>%
+  arrange(Calories) %>% 
+  group_by(Beverage_category, Beverage, Beverage_prep) %>% 
+  top_n(1, Calories) %>%
+  head(1)
+
+#solution
+drink_calories %>%
+  filter(Beverage_category != "Tazo® Tea Drinks") %>%
+  group_by(Beverage_category, Beverage, Beverage_prep) %>%
+  summarise(min_calories = min(Calories)) %>%
+  arrange(min_calories) %>%
+  head(1)
+```

@@ -1,0 +1,45 @@
+---
+title: "Extension"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(janitor)
+```
+
+#Load data
+```{r}
+movies <- read_csv("data/tmdb_5000_movies.csv", na='NA')
+```
+
+
+Question 1.
+
+```{r}
+#solution
+movie_budgets <- movies_imputed %>%
+  mutate(
+    budget_type = case_when(
+      budget < 12e6 ~ "Small budget",
+      budget < 40e6 ~ "Medium budget",
+      budget >= 40e6 ~ "Big budget"
+      )
+    )
+
+movie_budgets
+```
+
+
+
+Question 2.
+
+```{r}
+spec(movies)
+map(movies, ~sum(is.na(.)))
+
+movies %>% select_if(is.double) %>% names()
+movies %>% select_if(is.character) %>% names()
+```
+

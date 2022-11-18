@@ -1,0 +1,163 @@
+---
+title: "Tidyverse consolidation homework"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# MVP 
+
+<br>
+
+```{r}
+library(tidyverse)
+```
+
+
+**Question 1.**  
+
+```{r}
+code_clan_tweets <- read_csv("data/code_clan_tweets.csv")
+```
+```{r}
+#check data
+spec(code_clan_tweets)
+str(code_clan_tweets)
+glimpse(code_clan_tweets)
+head(code_clan_tweets, 5)
+names(code_clan_tweets)
+```
+
+
+<br>
+
+**Question 2.**  
+
+```{r}
+code_clan_tweets %>% 
+  filter(is_quote != TRUE) %>% 
+  count(sum(favorite_count))
+```
+
+
+<br>
+
+**Question 3.**  
+```{r}
+code_clan_tweets %>% 
+  filter(is_quote == FALSE) %>% 
+  group_by(source) %>%
+  summarise(mean_retweets = mean(retweet_count))
+```
+
+
+<br>
+
+**Question 4.**  
+```{r}
+code_clan_tweets %>% 
+  mutate(media_type = coalesce(media_type, "text")) %>% 
+  group_by(media_type) %>% 
+  summarise(total_likes = sum(favorite_count)) %>% 
+  arrange(desc(total_likes))
+```
+
+
+<br>
+
+**Question 5.**  
+<br>
+```{r}
+code_clan_tweets %>%
+  summarise(mean_chars = mean(display_text_width)) #148
+
+#checks if the mean is correct
+code_clan_tweets_text <- codeclan_tweets %>%
+  mutate(count_str_length = str_length(text)) %>%
+  select(count_str_length, display_text_width) %>% 
+  summarise(mean_chars = mean(count_str_length))
+
+code_clan_tweets_text #180
+```
+
+
+**Question 6.**  
+
+<br>
+```{r}
+code_clan_info <- read_csv("data/code_clan_info.csv")
+
+code_clan_info
+
+code_clan_status <- code_clan_info %>% 
+  select(tweet_id, status_url)
+
+code_clan_status # information to merge
+
+tweet_info_merged <- code_clan_tweets %>% 
+  left_join(code_clan_status, by = "tweet_id")
+
+tweet_info_merged
+```
+
+
+**Question 7.**  
+
+<br>
+```{r}
+codeclan_hashtags <- tweet_info_merged %>%
+  select(tweet_id,hashtags) %>% #has na values
+  drop_na() %>% 
+  mutate(hashtags = str_to_lower(hashtags))
+
+codeclan_hashtags
+```
+<br>
+
+**Question 8.**  
+
+<br>
+```{r}
+pattern_1 <- "c\\("
+pattern_2 <- "(?i)c\\(\"[a-z0-9,\"\\) ]+"
+
+hashtags_multiple <- codeclan_hashtags %>% 
+  mutate(first_letters = str_sub(hashtags, 1, 2)) %>%
+  filter(str_detect(first_letters, pattern_1))
+hashtags_multiple
+
+#other way?
+str_detect(codeclan_hashtags$hashtags, pattern_1)
+str_extract(codeclan_hashtags$hashtags, pattern_2)
+```
+
+
+**Question 9.**  
+
+<br>
+```{r}
+pattern_3 = "(?i)edinburgh"
+str_detect(code_clan_tweets$text, pattern_3) %>% sum()
+
+```
+
+
+**Question 10.**  
+
+```{r}
+pattern_4 = "@[A-z0-9_]+" #"(?i)@[a-z0-9_]+" alternative
+
+text_fltered <- code_clan_tweets %>% 
+  filter(str_detect(text, pattern_4))
+
+str_extract_all(text_fltered$text, pattern_4)
+```
+

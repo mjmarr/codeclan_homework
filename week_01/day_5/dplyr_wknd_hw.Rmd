@@ -1,0 +1,133 @@
+---
+title: "`dplyr` Weekend Homework"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
+```
+<br>
+
+-----
+
+
+#Load libraries
+```{r}
+library(tidyverse)
+library(janitor)
+library(dplyr)
+```
+
+#Load data
+```{r}
+books <- read_csv("data/books.csv")
+```
+
+#check & clean data
+```{r}
+#check data
+spec(books)
+str(books)
+glimpse(books)
+head(books, 5)
+names(books)
+
+#check for na's
+map(books, ~sum(is.na(.))) #no na's found,,,
+
+#clean data... (zero na's data is fine to be analysed...)
+```
+
+
+#Analyse data
+
+#how many books total
+```{r}
+count(books)
+```
+
+#top 5 highest rated books (on average)
+```{r}
+top_five_books <- books %>% 
+  filter(average_rating > 4) %>% 
+  slice_max(ratings_count, n = 5)
+
+top_five_books
+```
+
+#how many books have over 100,000 ratings
+```{r}
+books_over_100k_rating <- books %>% 
+  filter(ratings_count > 100000)
+```
+
+
+#how many books published per author
+```{r}
+books_per_author <- books %>% 
+  group_by(authors) %>% 
+  summarise(total = n()) %>% 
+  arrange(desc(total))
+
+books_per_author  
+```
+
+#pulisher with the highest number of books
+```{r}
+books_per_publisher <- books %>% 
+  group_by(publisher) %>% 
+  summarise(total_books = n()) %>% 
+  arrange(desc(total_books))
+
+books_per_publisher 
+```
+
+#most popular month for book releases
+```{r}
+#as.Date(books$publication_date, format =  "%m/%d/%Y") 
+#convert column from character to date
+
+most_popular_month_release <- books %>%
+    mutate(publication_date = as.Date(publication_date, format =  "%m/%d/%Y"))
+
+#two dates are wrong 31st of nov (max 30days) / 31 june (max 30days)
+# 11/31/2000 -> 11/30/2000 && 6/31/1982 -> 6/30/1982
+most_popular_month_release %>% 
+  filter(is.na(publication_date))
+
+#fix problem
+books_date_fixed <- books %>% 
+  mutate(publication_date = case_when(
+    publication_date == '11/31/2000' ~ '11/30/2000',
+    publication_date == '6/31/1982' ~ '6/30/1982',
+    TRUE ~ publication_date
+  )) #%>% 
+  #filter(rowid == 8184)
+  #filter(rowid == 11103)
+
+#most pouplar month for book releases
+most_popular_month_release <- books_date_fixed %>%
+  mutate(publication_date = as.Date(publication_date, format =  "%m/%d/%Y")) %>% 
+  count(month = format(publication_date, '%b'))
+
+ggplot(most_popular_month_release, aes(x = month, y = n, fill=month)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "Most popular release month for books", y = "number of books")
+```
+
+#Year with the most releases
+```{r}
+most_popular_release_year <- books_date_fixed %>%
+  mutate(publication_date = as.Date(publication_date, format =  "%m/%d/%Y")) %>% 
+  count(year = format(publication_date, '%Y')) %>% 
+  arrange(desc(n))
+
+most_popular_release_year
+```
+
