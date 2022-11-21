@@ -33,8 +33,6 @@ SELECT *
 FROM pay_details  
 WHERE local_account_no IS NULL AND iban IS NULL;
 
---Question 7.
---Get a table with employees first_name and last_name ordered alphabetically by last_name (put any NULLs last).
 /* Q7 */
 SELECT 
     first_name,
