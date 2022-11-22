@@ -105,9 +105,11 @@ WHERE COALESCE (first_name, last_name , department) IS NOT NULL;
 /* Q17 */
 SELECT 
     concat(first_name, ' ', last_name, '  - ', department, 
-            ' (joined ',start_date,')') AS badge_label
+            ' (joined ', to_char(start_date, 'FMMonth'), ' ', 
+            EXTRACT(YEAR FROM start_date),')') AS badge_label
 FROM employees
 WHERE COALESCE (first_name, last_name , department) IS NOT NULL;
+
 
 /* Q18 */
 SELECT 
