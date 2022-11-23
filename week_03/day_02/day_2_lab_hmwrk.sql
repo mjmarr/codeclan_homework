@@ -139,6 +139,11 @@ SELECT
 FROM employees_committees
 GROUP BY employee_id;
 
+--q5 ans
+SELECT 
+  COUNT(DISTINCT(employee_id)) AS num_employees_on_committees
+FROM employees_committees
+
 --q6
 SELECT count(e.id) AS member_who_dont_serve
 FROM employees AS e
