@@ -174,12 +174,6 @@ FROM t16;
 --Extension
 
 --q1
-Get a list of the id, first_name, last_name, department, salary and fte_hours of 
-employees in the largest department. Add two extra columns showing the ratio OF
-each employee’s salary to that department’s average salary, 
-and each employee’s fte_hours to that department’s average fte_hours.
-
-
 WITH CTE AS
 (
     SELECT 
