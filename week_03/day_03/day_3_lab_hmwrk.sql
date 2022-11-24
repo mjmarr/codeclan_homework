@@ -149,27 +149,11 @@ GROUP BY first_name
 ORDER BY count(id) DESC, first_name ASC;
 
 --q16
-
 SELECT 
-    department,    
-    grade,
-    count(*)
-FROM employees
-GROUP BY department, grade;
-
-WITH t16 AS 
- (SELECT 
-    department, 
-    grade, 
-    count(*) AS n 
-  FROM employees
-  GROUP BY department, grade)
-SELECT 
-    department, 
-    grade, 
-    n, 
-       (0.0+n)/(COUNT(*) OVER (PARTITION BY department)) AS proportion -- no integer divide!
-FROM t16;
+  department, 
+  SUM(CAST(grade = '1' AS INT)) / CAST(COUNT(id) AS REAL) AS prop_grade_1 
+FROM employees 
+GROUP BY department;
 
 --Extension
 
