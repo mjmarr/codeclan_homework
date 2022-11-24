@@ -156,7 +156,6 @@ FROM employees
 GROUP BY department;
 
 --Extension
-
 --q1
 WITH CTE AS
 (
@@ -177,35 +176,11 @@ SELECT
     e.department, 
     e.salary,
     e.fte_hours,
-    100 * (cte.avg_sal - e.salary ) / e.salary AS salary_proportion,
-    100 * (cte.avg_hours - e.fte_hours) / e.fte_hours AS fte_proportion
+    e.salary / cte.avg_sal AS salary_over_dept_avg,
+    e.fte_hours / cte.avg_hours AS fte_hours_over_dept_avg
 FROM employees AS e
 CROSS JOIN CTE AS cte
 GROUP BY e.id, cte.avg_sal, avg_hours;
-
---
-WITH biggest_dept_details(name, avg_salary, avg_fte_hours) AS (
-  SELECT 
-     department,
-     AVG(salary),
-     AVG(fte_hours)
-  FROM employees
-  GROUP BY department
-  ORDER BY COUNT(id) DESC NULLS LAST
-  LIMIT 1
-)
-SELECT
-  e.id,
-  e.first_name,
-  e.last_name,
-  e.department,
-  e.salary,
-  e.fte_hours,
-  e.salary / bdd.avg_salary AS salary_over_dept_avg,
-  e.fte_hours / bdd.avg_fte_hours AS fte_hours_over_dept_avg
-FROM employees AS e INNER JOIN biggest_dept_details AS bdd
-ON  e.department = bdd.name;
-
 
 --q2
 SELECT 
