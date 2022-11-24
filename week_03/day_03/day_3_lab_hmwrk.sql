@@ -230,7 +230,7 @@ SELECT
         when (e.salary >= 40000) then 'high'
         else 'none'
     end as salary_class,
-    count(*)
+    count(DISTINCT(e.id))
 FROM employees AS e
 INNER JOIN employees_committees AS ec
 ON e.id = ec.employee_id
