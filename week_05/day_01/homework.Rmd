@@ -53,7 +53,7 @@ competitors %>%
   ggplot() +
   aes(x = year, y = revenue, fill = company) +
   geom_area() +
-  scale_y_continuous(labels = scales::comma)
+  scale_y_continuous(labels = scales::dollar)#dollar for revenue
 ```
 
 Q5
