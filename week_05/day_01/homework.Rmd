@@ -25,9 +25,10 @@ device_data <- qb_device_data %>% clean_names()
 Q1 
 ```{r}
 ggplot(revenue_breakdown) + 
-  aes(x = product, y = revenue, fill = year) + 
+  aes(x = year, y = revenue, fill = product) + 
   geom_bar(stat = "identity", color = "black") +
   scale_fill_brewer()
+
 ```
 
 Q2
