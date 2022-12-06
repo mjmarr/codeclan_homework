@@ -1,0 +1,82 @@
+---
+title: "HOMEWORK"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+
+
+#MVP
+##Question 1.
+```{r}
+backpack_data <- backpack
+
+glimpse(backpack_data)
+```
+
+##Question 2.
+
+```{r}
+ggplot(backpack_data) +
+  aes(x = backpack_weight) +
+  geom_histogram(bins = 20, col = "white") 
+```
+
+##Question 3.
+```{r}
+ggplot(backpack_data ,aes(x = backpack_weight, fill = sex)) +
+  geom_bar() +
+  facet_wrap(~ sex)
+```
+
+
+##Question 4.
+```{r}
+ggplot(backpack_data) +
+  aes(
+    x = body_weight,
+    y = backpack_weight
+  ) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "body weight", y = "backpack weight")
+```
+
+
+## Question 5.
+```{r}
+  ggplot(backpack_data) +
+  aes(x = body_weight, y = backpack_weight, colour = sex) +
+  geom_point() +
+  labs(x = "body weight", y = "backpack weight")
+```
+
+
+## Question 6.
+```{r}
+ggplot(backpack_data, aes(x = back_problems)) +
+  geom_bar()
+```
+
+
+## Question 7.
+```{r}
+ggplot(backpack_data, aes(x= sex, fill = back_problems >= 1, group = back_problems) +
+  geom_bar(position = "dodge")
+```
+
+
+## Question 8.
+```{r}
+ggplot(backpack_data, aes(x = body_weight, y = backpack_weight))+
+  geom_point()+
+  facet_grid(back_problems ~ sex)
+```
+
+
+Try both backpack_weight and body_weight as well as the ratio.
+
+Hint: faceting would be useful here.
