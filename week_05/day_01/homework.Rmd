@@ -69,7 +69,7 @@ Q6
 
 ```{r}
 device_data %>% 
-  mutate(time = hours + mins/60) %>% 
+  mutate(time = hours + (mins/60)) %>% 
   group_by(id, device) %>% 
   mutate(step_count = cumsum(counts)) %>% 
   ggplot() +
@@ -80,11 +80,10 @@ device_data %>%
     title = "\nQikbit 1 vs competitors",
     x = "\nTime",
     y = "Step Count\n"
-  )
+  ) +
   theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold"),
         axis.text = element_text(face="bold"),
-        panel.grid = element_blank()
   )
   
 ```
@@ -138,7 +137,7 @@ Q2
 monthly_sales %>% 
   filter(cashflow == "Kwikbit Unit 1 Sales") %>% 
   ggplot(aes(x = date, y = amount)) +
-  geom_line() +
+  geom_line(size = 2, colour = col_scheme[2]) +
   labs(
     title = "Monthly Sales of Kwikbit Unit 1",
     subtitle = "August 2018 to July 2019",
@@ -147,6 +146,7 @@ monthly_sales %>%
   ) +
   quickbit_theme() +
   scale_x_date(date_breaks = "1 month", date_labels =  "%b")
+  
 
 ```
 
