@@ -109,7 +109,7 @@ plotly::plot_ly()
 # UI
 ui <- dashboardPage(
   skin = "purple",
-  dashboardHeader(title = "Simple tabs"),
+  dashboardHeader(title = "Video Game Sales"),
   sidebar,
   body
 )
