@@ -1,0 +1,193 @@
+---
+title: "Homework"
+output: html_notebook
+---
+
+```{r}
+library(gtools)
+library(tidyverse)
+library(janitor)
+source('prob.R')
+```
+
+```{r}
+#DATA
+titanic <- read_csv("data/titanic.csv")
+
+is.na(titanic$fare)
+```
+
+
+#MVP
+## 1.1
+```{r}
+titanic <- titanic %>%
+  mutate(crew = case_when(fare == 0 ~ TRUE,
+                          fare > 0 ~ FALSE,
+                          NA ~ TRUE))
+
+crew_table <- titanic %>% 
+  tabyl(crew, survived) %>% 
+  adorn_totals(where = c("row", "col")) %>% 
+  adorn_percentages(denominator = "all") %>% 
+  adorn_title()
+crew_table
+
+```
+
+##1.2
+
+Q1
+```{r}
+s_one_dice <- rolldie(1)
+
+one_dice <- s_one_dice %>% 
+  filter(X1 < 5)
+
+prob_less_five <- nrow(one_dice)/nrow(s_one_dice)
+prob_less_five
+```
+
+Q2
+```{r}
+s_three_dice <- rolldie(3)
+
+s_three_dice %>% 
+  summarise(size_of_event_space = n())
+```
+
+Q3
+```{r}
+s_four_dice <-  rolldie(4)
+
+#totals
+s_four_dice <- s_four_dice %>% 
+  mutate(total = rowSums(s_four_dice))
+
+#probability
+s_four_dice %>% 
+  filter(total %in% c(5,6,7)) %>% 
+  summarise(prob = n()/nrow(s_four_dice))
+```
+
+Q4
+```{r}
+#ASSUMING HEIGHT IS A TALLEST E SMALLEST
+people <- c("A","B","C","D","E")
+
+chairs_height <- as_tibble(
+  permutations(n = 5,
+               r = 5,
+               v = people,
+               repeats.allowed = FALSE
+  ))
+
+chairs_height_ordered <- chairs_height %>% 
+  filter(V1 == "A",
+         V2 == "B",
+         V3 == "C",
+         V4 == "D",
+         V5 == "E")
+
+chair_prob <-  nrow(chairs_height_ordered) / nrow(chairs_height)
+chair_prob
+```
+
+Q5
+
+I roll six dice:
+
+    what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
+    what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
+
+```{r}
+s_six_dice <- rolldie(6)
+
+#part1
+ordered_six_dice <- six_dice %>% 
+  filter(X1 == 1,
+         X2 == 2,
+         X3 == 3,
+         X4 == 4,
+         X5 == 5,
+         X6 == 6)
+
+dice_ordered_prob <-  nrow(ordered_six_dice) / nrow(six_dice)
+dice_ordered_prob
+
+#part2
+s_six_dice <- six_dice %>% 
+  mutate(total = rowSums(six_dice))
+
+
+test <- c(1,2,3,4,5,6)
+
+dice_test <- as_tibble(
+  permutations(n = 6,
+               r = 6,
+               v = test,
+               repeats.allowed = FALSE
+  ))
+
+dice_test_ordered <- dice_test %>%
+  filter(V1 == 1,
+         V2 == 2,
+         V3 == 3,
+         V4 == 4,
+         V5 == 5,
+         V6 == 6)
+
+dice_test_ordered <-  nrow(dice_test) / nrow(s_six_dice)
+dice_test_ordered
+
+#using isin....
+isin(s_six_dice, c(1, 2, 3, 4, 5, 6), ordered = FALSE) %>%
+  as_tibble() %>%
+  count(value)
+```
+
+Q6
+```{r}
+s_cards <- cards() %>% 
+  mutate(black_card = ifelse(suit == 'Club' | suit == 'Spade', TRUE, FALSE))
+s_cards
+```
+OR
+
+```{r}
+cards2 <- function (jokers = FALSE)
+{
+  x <- c(2:10, "J", "Q", "K", "A")
+  y <- c("Club", "Diamond", "Heart", "Spade")
+  res <- expand.grid(rank = x, suit = y)
+  if (jokers) {
+    levels(res$rank) <- c(levels(res$rank), "Joker")
+    res <- rbind(res, data.frame(rank = c("Joker", "Joker"),
+                                 suit = c(NA, NA)))
+  }
+  res <- res %>% 
+  mutate(black_card = ifelse(suit == 'Club' | suit == 'Spade', TRUE, FALSE))
+  return(res)
+}
+
+cards2()
+```
+
+
+```{r}
+#probabilities
+all_cards <- cards2()
+
+spades <- all_cards %>% filter(suit == 'Spade')
+
+#spade prob
+spade_prob <-  nrow(spades) / nrow(all_cards)
+spade_prob
+
+#black cards
+black_cards <- all_cards %>% filter(black_card)
+prob_black <- nrow(black_cards) / nrow(all_cards)
+prob_black
+
+```
+
