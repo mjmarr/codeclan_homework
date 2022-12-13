@@ -104,7 +104,7 @@ I roll six dice:
 s_six_dice <- rolldie(6)
 
 #part1
-ordered_six_dice <- six_dice %>% 
+ordered_six_dice <- s_six_dice %>% 
   filter(X1 == 1,
          X2 == 2,
          X3 == 3,
@@ -112,12 +112,12 @@ ordered_six_dice <- six_dice %>%
          X5 == 5,
          X6 == 6)
 
-dice_ordered_prob <-  nrow(ordered_six_dice) / nrow(six_dice)
+dice_ordered_prob <-  nrow(ordered_six_dice) / nrow(s_six_dice)
 dice_ordered_prob
 
 #part2
-s_six_dice <- six_dice %>% 
-  mutate(total = rowSums(six_dice))
+s_six_dice <- s_six_dice %>% 
+  mutate(total = rowSums(s_six_dice))
 
 
 test <- c(1,2,3,4,5,6)
