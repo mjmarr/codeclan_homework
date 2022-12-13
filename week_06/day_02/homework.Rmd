@@ -1,0 +1,90 @@
+---
+title: "Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(skimr)
+```
+
+
+#MVP
+
+##1.1
+```{r}
+mobile_phones <- read_csv("data/20190928-items.csv") %>% clean_names() %>% 
+  mutate(rating = as.numeric(rating)) #fix for qqnorm!
+```
+
+##1.2
+```{r}
+mobile_phones %>% 
+  group_by(brand) %>% 
+  tally() %>% 
+  arrange(desc(n)) %>% 
+  head(1)
+
+# OR
+
+mobile_phones %>% 
+  count(brand) %>% 
+  slice_max(n)
+```
+
+##1.3
+```{r}
+samsung_stats <- mobile_phones %>% 
+  filter(brand == "Samsung") %>% 
+  summarise(
+    total = n(),
+    mean = mean(rating),
+    sd = sd(rating)
+    )
+
+mobile_phones %>% 
+  filter(brand == "Samsung") %>%
+  ggplot(aes(x = rating)) +
+  geom_histogram(aes(
+    y = after_stat(density)),
+    col = "white",
+    bins = 25
+  ) +
+  stat_function(
+    fun = dnorm,
+    args = list(mean = samsung_stats$mean,
+                sd = samsung_stats$sd
+    ), col = "red"
+  )
+```
+
+##1.4
+```{r}
+#std 1
+mobile_phones %>%
+  filter(rating >= samsung_stats$mean - samsung_stats$sd) %>%
+  filter(rating <= samsung_stats$mean + samsung_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(mobile_phones))
+
+#std 2
+mobile_phones %>%
+  filter(rating >= samsung_stats$mean - samsung_stats$sd*2) %>%
+  filter(rating <= samsung_stats$mean + samsung_stats$sd*2) %>%
+  summarise(prop_within_2sd = n() / nrow(mobile_phones))
+
+#std 3
+mobile_phones %>%
+  filter(rating >= samsung_stats$mean - samsung_stats$sd*3) %>%
+  filter(rating <= samsung_stats$mean + samsung_stats$sd*3) %>%
+  summarise(prop_within_3sd = n() / nrow(mobile_phones))
+```
+
+##EXT
+```{r}
+samsung_only <- mobile_phones %>% filter(brand == "Samsung") 
+
+qqnorm(samsung_only$rating)
+qqnorm(mobile_phones$rating)
+```
+
