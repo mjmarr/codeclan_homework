@@ -30,6 +30,7 @@ crew_table <- titanic %>%
   tabyl(crew, survived) %>% 
   adorn_totals(where = c("row", "col")) %>% 
   adorn_percentages(denominator = "all") %>% 
+  adorn_rounding(digits = 4) %>%
   adorn_title()
 crew_table
 
@@ -94,11 +95,6 @@ chair_prob
 ```
 
 Q5
-
-I roll six dice:
-
-    what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
-    what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
 
 ```{r}
 s_six_dice <- rolldie(6)
