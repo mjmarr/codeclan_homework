@@ -45,6 +45,7 @@ samsung_stats <- mobile_phones %>%
 
 mobile_phones %>% 
   filter(brand == "Samsung") %>%
+  select(rating) %>% 
   ggplot(aes(x = rating)) +
   geom_histogram(aes(
     y = after_stat(density)),
@@ -85,6 +86,8 @@ mobile_phones %>%
 samsung_only <- mobile_phones %>% filter(brand == "Samsung") 
 
 qqnorm(samsung_only$rating)
+qqline(samsung_only$rating)
+
 qqnorm(mobile_phones$rating)
 ```
 
