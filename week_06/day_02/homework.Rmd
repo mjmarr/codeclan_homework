@@ -70,14 +70,14 @@ mobile_phones %>%
 
 #std 2
 mobile_phones %>%
-  filter(rating >= samsung_stats$mean - samsung_stats$sd*2) %>%
-  filter(rating <= samsung_stats$mean + samsung_stats$sd*2) %>%
+  filter(rating >= samsung_stats$mean - (samsung_stats$sd * 2)) %>%
+  filter(rating <= samsung_stats$mean + samsung_stats$sd * 2) %>%
   summarise(prop_within_2sd = n() / nrow(mobile_phones))
 
 #std 3
 mobile_phones %>%
-  filter(rating >= samsung_stats$mean - samsung_stats$sd*3) %>%
-  filter(rating <= samsung_stats$mean + samsung_stats$sd*3) %>%
+  filter(rating >= samsung_stats$mean - (samsung_stats$sd *3 )) %>%
+  filter(rating <= samsung_stats$mean + (samsung_stats$sd *3 )) %>%
   summarise(prop_within_3sd = n() / nrow(mobile_phones))
 ```
 
