@@ -74,14 +74,14 @@ mean_ames_org_data
 #EXT
 ##Task 1
 ```{r}
-ames_pre_1920 <- ames %>% 
-  filter(year_built < 1920)
+ames_pre_1920 <- ames %>%
+  mutate(before_1920 = as.numeric(year_built < 1920))
 ```
 
 #rep 200
 ```{r}
 bs_ames_200 <- ames_pre_1920 %>%
-    specify(response = lot_area) %>%
+    specify(response = before_1920) %>%
     generate(reps = 200, type = "bootstrap") %>%
     calculate(stat = "mean") 
 
@@ -102,7 +102,7 @@ ames_200_mean
 #rep 50000
 ```{r}
 bs_ames_50k <- ames_pre_1920 %>%
-    specify(response = lot_area) %>%
+    specify(response = before_1920) %>%
     generate(reps = 50000, type = "bootstrap") %>%
     calculate(stat = "mean") 
 
