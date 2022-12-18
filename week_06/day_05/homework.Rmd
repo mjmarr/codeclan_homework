@@ -1,0 +1,215 @@
+---
+title: "Homework"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(janitor)
+library(infer)
+```
+
+# 1.1 MVP
+```{r}
+animals <- msleep
+skimr::skim(animals)
+```
+
+```{r}
+#check whether animals have 24 hours (sleep_total + awake)
+animals %>% 
+  mutate(hours = sleep_total + awake) %>% 
+  count(hours)
+```
+
+
+# 1.1.2
+Jabberwockies sleep for around 7 hours a night, on average
+
+```{r}
+#boxplot
+animals %>%
+  ggplot(aes(x = sleep_total)) +
+  geom_boxplot()
+
+#observered sleep_total mean for sampled animals
+observed_stat <- animals %>%
+  summarise(mean_rating = mean(sleep_total))
+
+observed_stat
+```
+### Hypothesis test
+H0: mean(avg_animals_sleep) & mean(jaberwockies_sleep) == 7
+HA: mean(avg_animals_sleep) & mean(jaberwockies_sleep) != 7
+alpha: 0.05
+
+```{r}
+#null distribution
+null_distribution <- animals %>%
+  specify(response = sleep_total) %>%
+  hypothesize(null = "point", mu = 7) %>%
+  generate(reps = 5000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+
+#visualise null distro
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat$mean_rating, direction = "both")
+
+#get p value
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat$mean_rating, direction = "both")
+p_value
+```
+### Findings
+P-value is close to 0 and less than the significance level of 0.05. 
+We therefore reject the NULL hypothesis in favour of the alternative hypothesis. 
+There is a difference between average sleep hours of jabberwockies and the animals 
+in our sample.
+
+
+# 1.1.3
+```{r}
+#check for different food consumption types for the animals (herbivore/carnivore)
+animals %>% 
+    count(vore)
+```
+```{r}
+animals %>% 
+  ggplot(aes(x = sleep_total, y = vore))+
+  geom_boxplot()
+
+#get difference in sleep between two dietary types (using infer)
+obs_stat_diff <- animals %>% 
+  filter(vore == "omni" | vore == "herbi") %>% 
+  specify(sleep_total ~ vore) %>% 
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+obs_stat_diff
+```
+
+Hypothesis
+H0: mean(omni_sleep) <= mean(herbi_sleep)
+HA: mean(omni_sleep) > mean(herbi_sleep)
+alpha: 0.05
+```{r}
+filtered_animals <- animals %>% 
+    filter(vore == "omni" | vore == "herbi")
+
+#null distro
+null_distribution <- filtered_animals %>% 
+  specify(sleep_total ~ vore) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 2000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+
+head(null_distribution)
+
+#visualise distro
+null_distribution %>% 
+    visualise(bins = 30)+
+    shade_p_value(obs_stat = obs_stat_diff$stat, direction = "both")
+
+#get p value
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = obs_stat_diff$stat, direction = "both")
+p_value
+```
+```{r}
+filtered_animals %>% 
+    group_by(vore) %>% 
+    select(vore, sleep_total) %>% 
+    summarise(mean = mean(sleep_total))
+```
+
+P-value is 0.244 so we fail to reject to NULL hypothesis. Omnivores do not sleep 
+a statistically significantly longer than herbivores.
+
+# 1.1.4
+
+Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than .
+
+H0: proportion(domesticated) <= 5%.
+HA: proportion(domesticated) > 5%
+alpha: 0.05
+
+```{r}
+domesticated_animals <- animals %>% 
+    #alter na values to none
+    mutate(conservation = coalesce(conservation, "none")) %>%
+    #see if they're domesticated or not
+    mutate(is_domestiated = ifelse(conservation == "domesticated", "TRUE", "FALSE"))
+
+#get proportion of domesticated animals
+prop_domesticated <- domesticated_animals %>% 
+  filter(is_domestiated == "TRUE") %>% 
+  summarise(prop = n()/nrow(domesticated_animals))
+prop_domesticated
+```
+```{r}
+#null distro
+null_dist_domesticated <- domesticated_animals %>% 
+  specify(response = is_domestiated, success = "TRUE") %>%
+  hypothesise(null = "point", p = 0.05) %>% 
+  generate(reps = 2000, type = "draw") %>% 
+  calculate(stat = "prop")
+
+#visualise
+null_dist_domesticated %>% 
+  visualise(bins = 30)+
+  shade_p_value(obs_stat = prop_domesticated$prop,
+                direction = "greater")
+
+
+p_val_domesticated <- null_dist_domesticated %>% 
+  get_p_value(obs_stat = prop_domesticated$prop,
+                direction = "greater")
+p_val_domesticated
+```
+P-value is less than 0.05 so we reject the NULL hypothesis. he amount of
+domesticated animals in the population would be statistically greater than 5%.
+
+# 1.2.1
+
+Test: One proportion
+H0: prop(know_coffee_shop) <= 40%
+HA: prop(know_coffee_shop) > 40%
+alpha: 0.05
+method_generate_null: draw
+
+# 1.2.2
+
+Test: Two proportion (independant)
+
+`ctr` = `click through rate`
+H0: prop(a_ctr) >= prop(b_ctr)
+HA: prop(a_ctr) < prop(b_ctr)
+
+method_generate_null: permute
+
+#1.2.3
+
+Test: one mean
+
+H0: mean(part_width) == 145
+HA: mean(part_width) != 145
+
+method_generate_null: boostrap
+
+
+# 1.3.1
+`Significance level`: 0.05, `calculated -value`: 0.07
+
+Fail to reject null hypothesis, proportion of people aware of the coffee shop is
+less than or equal 40.
+
+# 1.3.2
+`Significance level`: 0.01, `-value`: 0.006
+
+Reject null hypothesis in favour of alternative hypothesis, which states group  b 
+has more clicks and a group.
+
+# 1.3.3
+`Significance level`: 0.05, `-value`: 0.55
+
+Fail to reject the NULL hypothesis. There is no statistically significant difference 
+in the size of parts measured the the specification.
