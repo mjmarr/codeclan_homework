@@ -107,11 +107,11 @@ head(null_distribution)
 #visualise distro
 null_distribution %>% 
     visualise(bins = 30)+
-    shade_p_value(obs_stat = obs_stat_diff$stat, direction = "both")
+    shade_p_value(obs_stat = obs_stat_diff$stat, direction = "right")
 
 #get p value
 p_value <- null_distribution %>%
-  get_p_value(obs_stat = obs_stat_diff$stat, direction = "both")
+  get_p_value(obs_stat = obs_stat_diff$stat, direction = "right")
 p_value
 ```
 ```{r}
@@ -157,12 +157,12 @@ null_dist_domesticated <- domesticated_animals %>%
 null_dist_domesticated %>% 
   visualise(bins = 30)+
   shade_p_value(obs_stat = prop_domesticated$prop,
-                direction = "greater")
+                direction = "right")
 
 
 p_val_domesticated <- null_dist_domesticated %>% 
   get_p_value(obs_stat = prop_domesticated$prop,
-                direction = "greater")
+                direction = "right")
 p_val_domesticated
 ```
 P-value is less than 0.05 so we reject the NULL hypothesis. he amount of
