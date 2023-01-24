@@ -1,0 +1,81 @@
+---
+title: "Homework"
+output: html_notebook
+---
+
+# MVP
+
+## 1.1
+```{r setup}
+library(mosaic)
+library(mosaicData)
+library(janitor)
+library(tidyverse)
+library(GGally)
+library(ggfortify)
+
+housing_prices <- read_csv("data/housing_prices.csv")
+```
+
+## 1.2
+```{r}
+housing_prices %>% select(c('total_rooms', 'total_bedrooms')) %>% 
+  ggpairs()
+```
+
+Looks like there's a strong positive correlation, and the majority of data clumped together between 1:2000 on y axis
+
+## 1.3
+```{r}
+housing_prices_alt <- housing_prices %>% select(-total_bedrooms)
+
+# check there are no aliased variables ready for modelling
+alias(median_house_value ~ ., data = housing_prices_alt)
+```
+
+## 1.4
+
+### 1.4 i
+```{r}
+ggpairs(housing_prices_alt)
+```
+
+### 1.4 ii
+```{r}
+housing_prices_alt %>% ggplot(aes(x = total_rooms, y = households))+
+  geom_point()
+```
+
+
+## 1.5
+```{r}
+housing_prices_alt %>% distinct(ocean_proximity)
+#there are 5 different categories, so we need only four dummy variables (n-1)
+```
+
+## 1.6
+```{r}
+model <- lm(formula = median_house_value ~ median_income, data = housing_prices_alt)
+autoplot(model)
+```
+plot1: the points are bit too crowded but looks okay
+plot2: normal q-q, but is a little bit off 
+plot3: accpetable
+
+```{r}
+summary(model)
+```
+
+
+## 1.7
+```{r}
+model_2 <- lm(median_house_value ~ median_income + total_rooms, data = housing_prices_alt)
+autoplot(model_2)
+```
+
+```{r}
+summary(model_2)
+```
+
+Residual standard error dropped comparing to the first model that was created.
+r squared is slightly higher than the first model and the diagnostics looks very similar to each other.
