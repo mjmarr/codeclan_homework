@@ -62,7 +62,7 @@ autoplot(model)
 ```
 plot1: the points are bit too crowded but looks okay
 plot2: normal q-q, but is a little bit off 
-plot3: acceptable
+plot3: accpetable
 
 ```{r}
 summary(model)
@@ -79,5 +79,3 @@ autoplot(model_2)
 summary(model_2)
 ```
 
-Residual standard error dropped comparing to the first model that was created.
-r squared is slightly higher than the first model and the diagnostics looks very similar to each other.
