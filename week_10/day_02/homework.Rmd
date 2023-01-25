@@ -62,7 +62,7 @@ autoplot(model)
 ```
 plot1: the points are bit too crowded but looks okay
 plot2: normal q-q, but is a little bit off 
-plot3: accpetable
+plot3: acceptable
 
 ```{r}
 summary(model)
