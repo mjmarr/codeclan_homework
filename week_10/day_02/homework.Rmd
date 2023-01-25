@@ -43,15 +43,17 @@ ggpairs(housing_prices_alt)
 ### 1.4 ii
 ```{r}
 housing_prices_alt %>% ggplot(aes(x = total_rooms, y = households))+
-  geom_point()
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)
 ```
 
 
 ## 1.5
 ```{r}
 housing_prices_alt %>% distinct(ocean_proximity)
-#there are 5 different categories, so we need only four dummy variables (n-1)
 ```
+
+there are 5 different categories, so we need only four dummy variables (n-1)
 
 ## 1.6
 ```{r}
