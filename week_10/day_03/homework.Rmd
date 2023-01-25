@@ -1,0 +1,370 @@
+---
+title: "Homework"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(janitor)
+library(ggfortify)
+library(GGally)
+library(modelr)
+```
+
+# 1
+```{r}
+houses <- read_csv("data/kc_house_data.csv") %>% clean_names()
+
+names(houses)
+skimr::skim(houses)
+```
+
+remove unwanted values and add features ready for modelling
+
+yr_renovated - The year of the house’s last renovation
+waterfront - A dummy variable for whether the apartment was overlooking the waterfront or not
+view - An index from 0 to 4 of how good the view of the property was
+condition - An index from 1 to 5 on the condition of the apartment
+
+
+grade - An index from 1 to 13, where 
+
+    1-3 falls short of building construction and design, 
+    7 has an average level of construction and design, and 
+    11-13 have a high quality level of construction and design
+
+
+```{r}
+#test grade filter code
+houses %>% mutate(grade_test = case_when(
+            grade > 10 ~ "high_quality",
+            grade >= 8 & grade <= 10 ~ "above_avg",
+            grade == 7 ~ "average",
+            grade >= 4 & grade <= 6 ~ "below_avg",
+            TRUE ~ "low_quality"
+        )) %>% 
+    select(grade, grade_test)
+```
+
+
+# trim......
+
+```{r}
+houses_trim <- houses %>% 
+    select(
+        #re-order remaining columns
+        price,
+        everything(),
+        #remove misc columns
+        -c(id, date, sqft_living15, sqft_lot15, zipcode),
+    ) %>% 
+    mutate(
+        renovated = if_else(yr_renovated == 0, FALSE, TRUE),
+        waterfront = as.logical(waterfront),
+        grade = case_when(
+            grade > 10 ~ "high_quality",
+            grade >= 8 & grade <= 10 ~ "above_avg",
+            grade == 7 ~ "average",
+            grade >= 4 & grade <= 6 ~ "below_avg",
+            TRUE ~ "low_quality"
+        ),
+        view = case_when(
+            view == 0 ~ "very_bad",
+            view == 1 ~ "bad",
+            view == 2 ~ "okay",
+            view == 3 ~ "good",
+            TRUE ~ "very_good"
+        ),
+        condition = case_when(
+            condition == 1 ~ "very_bad",
+            condition == 2 ~ "bad",
+            condition == 3 ~ "okay",
+            condition == 4 ~ "good",
+            TRUE ~ "very_good"
+        ),
+        price = log(price)
+    ) %>% 
+    #removed old renovated column
+    select(-yr_renovated)
+
+
+skimr::skim(houses_trim)
+```
+
+# 2
+
+```{r}
+alias(price ~ ., houses_trim)
+```
+
+
+```{r}
+#remove conficting variables
+houses_trim <- houses_trim %>% 
+  select(-sqft_basement, -sqft_above)
+```
+
+```{r}
+#doublecheck
+alias(price ~ ., houses_trim)
+```
+# 3
+
+```{r message=FALSE}
+houses_tidy_numeric <- houses_trim %>%
+  select_if(is.numeric)
+
+houses_tidy_nonnumeric <- houses_trim %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_tidy_nonnumeric$price <- houses_trim$price
+
+ggpairs(houses_tidy_numeric, progress =  FALSE)
+ggpairs(houses_tidy_nonnumeric, progress = FALSE)
+```
+
+Possible candidates for first predictor?
+
+sqft_living - mod1a
+sqft_above - mod1b
+bathrooms - mod1c
+waterfront - mod1d
+grade - mod1e
+
+
+## sqft_living - mod1a
+```{r}
+mod1a <- lm(price ~ sqft_living,
+            houses_trim)
+summary(mod1a)
+```
+
+
+```{r}
+autoplot(mod1a)
+```
+
+
+## sqft_above - mod1b
+```{r}
+mod1b <- lm(price ~ sqft_above,
+            houses_trim)
+summary(mod1b)
+```
+
+
+```{r}
+autoplot(mod1b)
+```
+
+## bathrooms - mod1c
+```{r}
+mod1c <- lm(price ~ bathrooms,
+            houses_trim)
+summary(mod1c)
+```
+
+
+```{r}
+autoplot(mod1c)
+```
+
+## waterfront - mod1d
+```{r}
+mod1d <- lm(price ~ waterfront,
+            houses_trim)
+summary(mod1d)
+```
+
+
+```{r}
+autoplot(mod1d)
+```
+
+
+## grade - mod1e
+```{r}
+mod1e <- lm(price ~ grade,
+            houses_trim)
+summary(mod1e)
+```
+
+
+```{r}
+autoplot(mod1e)
+```
+
+
+sqft_living -> first predictor
+
+```{r}
+house_resid <- houses_trim %>% 
+  add_residuals(mod1a) %>% 
+  select(resid, everything(), -price, -sqft_living)
+
+house_resid %>% 
+  ggpairs(aes(colour = grade, alpha = 0.5), progress = FALSE)
+```
+
+## Selecting second predictor
+```{r}
+houses_tidy_numeric <- house_resid %>%
+  select_if(is.numeric)
+
+houses_tidy_nonnumeric <- house_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_tidy_nonnumeric$price <- house_resid$price
+
+ggpairs(houses_tidy_numeric, progress =  FALSE)
+ggpairs(houses_tidy_nonnumeric, progress = FALSE)
+```
+
+
+good options? to test for second predictor
+
+lat - mod2a
+waterfront - mod2b
+view - mod2c
+yr_built - mod2d
+
+
+## lat - mod2a
+```{r}
+mod2a <- lm(price ~ sqft_living + lat,
+            houses_trim)
+summary(mod2a)
+```
+
+```{r}
+autoplot(mod2a)
+```
+
+
+## waterfront - mod2b
+```{r}
+mod2b <- lm(price ~ sqft_living + waterfront,
+            houses_trim)
+summary(mod2b)
+```
+
+```{r}
+autoplot(mod2b)
+```
+
+
+## view - mod2c
+```{r}
+mod2c <- lm(price ~ sqft_living + view,
+            houses_trim)
+summary(mod2c)
+```
+
+```{r}
+autoplot(mod2c)
+```
+
+
+## yr_built - mod2d
+```{r}
+mod2d <- lm(price ~ sqft_living + yr_built,
+            houses_trim)
+summary(mod2d)
+```
+
+```{r}
+autoplot(mod2d)
+```
+
+anova test
+```{r}
+anova(mod1a, mod2a)
+```
+
+Selected lat as second predictor
+
+```{r}
+house_resid <- houses_trim %>%
+  add_residuals(mod2a) %>%
+  select(resid, everything(), -c(lat, price, sqft_living))
+```
+
+
+## Selecting third predictor
+```{r}
+houses_tidy_numeric <- house_resid %>%
+  select_if(is.numeric)
+
+houses_tidy_nonnumeric <- house_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_tidy_nonnumeric$price <- house_resid$price
+
+ggpairs(houses_tidy_numeric, progress =  FALSE)
+ggpairs(houses_tidy_nonnumeric, progress = FALSE)
+```
+
+Possible third predictors
+view - mod3a
+waterfront - mod3b
+yr_built - mod3c
+
+## view - mod3a
+```{r}
+mod3a <- lm(price ~ sqft_living + lat + view, 
+            houses_trim)
+summary(mod3a)
+```
+
+```{r}
+autoplot(mod3a)
+```
+
+## waterfront - mod3b
+```{r}
+mod3b <- lm(price ~ sqft_living + lat + waterfront, 
+            houses_trim)
+summary(mod3b)
+```
+
+```{r}
+autoplot(mod3b)
+```
+
+## yr_built - mod3c
+```{r}
+mod3c <- lm(price ~ sqft_living + lat + yr_built, 
+            houses_trim)
+summary(mod3c)
+```
+
+```{r}
+autoplot(mod3c)
+```
+
+```{r}
+anova(mod2a, mod3a)
+```
+
+selected view as the third predictor
+
+```{r}
+house_resid <- houses_trim %>% 
+  add_residuals(mod3a) %>% 
+  select(resid, everything(), -c(lat, price, sqft_living, view))
+```
+
+
+4th predictor / interaction?
+
+
+
+```{r}
+mod4a <- lm(price ~ sqft_living + lat + view + view:lat, 
+            houses_trim)
+summary(mod4a)
+```
+```{r}
+autoplot(mod4a)
+```
+
