@@ -360,11 +360,24 @@ house_resid <- houses_trim %>%
 
 
 ```{r}
-mod4a <- lm(price ~ sqft_living + lat + view + view:lat, 
+mod4a <- lm(price ~ sqft_living + lat + view + grade, 
             houses_trim)
 summary(mod4a)
 ```
 ```{r}
 autoplot(mod4a)
+```
+
+# interation
+
+```{r}
+mod5a <- lm(price ~ sqft_living + lat + view + grade + grade:view, 
+            houses_trim)
+summary(mod5a)
+```
+
+
+```{r}
+autoplot(mod5a)
 ```
 
