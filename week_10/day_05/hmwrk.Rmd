@@ -87,7 +87,7 @@ ggplot(wine, aes(as.factor(quality), volatile_acidity, colour = type))+
     geom_boxplot() + coord_cartesian(ylim = c(0, 1.5))
 ```
 
-*Acidity*: It is diificult to find a certain pattern, it looks like better quality wines have lower `volatile_acidity`. 
+*Acidity*: It is difficult to find a certain pattern, it looks like better quality wines have lower `volatile_acidity`. 
 `Fixed_acidity` quantity roughly follow the same pattern except the wines rated 9.
 
 ```{r warning=FALSE}
