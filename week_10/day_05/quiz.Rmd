@@ -1,0 +1,38 @@
+---
+title: "QUIZ"
+output: html_notebook
+---
+
+# 1
+
+More likely to be over fitting with these variables as some variables aren't specifically related to the predicted variable (i.e. final_school_exam_score). These variables likely to be a cause of over fitting are postcode, date of birth and family income.
+
+# 2
+
+The model with the lowest score, is considered better in this scenario without knowing any other details...
+
+# 3
+
+First model should be should be chosen since the r and adj r ^2 are close to each other, second model might be over fit?
+
+# 4
+
+i don't think the model over fitting, since the test set has yielded a lower `RMSE` value than the train set, which is likely that the model is properly capturing the trends of the data, rather than connecting specific patterns of the training data set.
+
+# 5
+
+Cross-validation is a statistical method used to estimate the skill of machine learning models.
+
+It is commonly used in applied machine learning to compare and select a model for a given predictive modeling problem because it is easy to understand, easy to implement, and results in skill estimates that generally have a lower bias than other methods.
+
+# 6
+
+A validation dataset is a sample of data that is held back from training your model. Which is used to give an estimate of a model's skill while tuning the model’s hyper-parameters. This allows the model to be tested on `unseen` data and gives an insight into the `predictive` capabilities of the model once it's been tuned.
+
+# 7
+
+Begins with a model that contains all variables under consideration (called the Full Model) Then starts removing the least significant variables one after the other
+
+# 8
+
+Best-subset selection aims to find a small subset of predictors, so that the resulting linear model is expected to have the most desirable prediction accuracy.

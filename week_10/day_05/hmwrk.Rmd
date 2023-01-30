@@ -1,0 +1,228 @@
+---
+title: "Homework: Predicting wine quality..."
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(GGally)
+library(corrplot)
+library(modelr)
+library(ggfortify)
+library(caret)
+library(e1071)
+```
+
+# Load & Cleaning data (feature engineering....)
+```{r}
+# Red wine data
+wine_red <- read_csv("data/wine_quality_red.csv") %>% janitor::clean_names()
+wine_red$type <- "Red"
+
+# white wine data
+wine_white <- read_csv("data/wine_quality_white.csv") %>% 
+    janitor::clean_names()
+wine_white$type <- "White"
+
+wine <- rbind(wine_red, wine_white)
+wine$wine_id <- NULL #remove id column
+wine <- wine %>% select(-region) %>% 
+    drop_na() %>%
+    mutate(type = as.factor(type))
+```
+
+```{r}
+skimr::skim(wine)
+```
+
+
+```{r}
+str(wine)
+```
+
+```{r}
+summary(wine)
+```
+
+```{r}
+#add more labels
+wine <- wine %>%
+    mutate(type = factor(type),
+           quality = round(quality, digits = 0))#, # round quality numbers to closest value
+           #quality_label = cut(quality,
+                               #c(1, 4, 6, 10),
+                               #labels = c("Low", "Medium", "High")))
+```
+
+```{r}
+#double check whether it did round the values correctly..
+table(wine$quality)
+```
+#check distribution of quality
+```{r}
+ggplot(wine, aes(quality)) +
+    geom_bar() +
+    facet_wrap( ~ type, ncol = 1)
+```
+
+```{r warning=FALSE}
+#wine %>%
+  #ggpairs(aes(colour = type, alpha = 0.5), progress = FALSE)
+```
+
+# box plots (quality ~ othervalues)
+```{r}
+ggplot(wine, aes(as.factor(quality), fixed_acidity))+ 
+    geom_boxplot() + coord_cartesian(ylim = c(0,200))
+
+ggplot(wine, aes(as.factor(quality), fixed_acidity, colour = type))+ 
+    geom_boxplot() + coord_cartesian(ylim = c(0,200))
+```
+
+```{r}
+ggplot(wine, aes(as.factor(quality), volatile_acidity))+ 
+    geom_boxplot() + coord_cartesian(ylim = c(0,1.5))
+
+ggplot(wine, aes(as.factor(quality), volatile_acidity, colour = type))+ 
+    geom_boxplot() + coord_cartesian(ylim = c(0, 1.5))
+```
+
+*Acidity*: It is diificult to find a certain pattern, it looks like better quality wines have lower `volatile_acidity`. 
+`Fixed_acidity` quantity roughly follow the same pattern except the wines rated 9.
+
+```{r warning=FALSE}
+par(mfrow=c(2,2))
+scatter.smooth(x=wine$volatile_acidity, y=wine$quality, main="quality ~ volatile_acidity")
+scatter.smooth(x=wine$density, y=wine$quality, main="quality ~ density")
+scatter.smooth(x=wine$p_h, y=wine$quality, main="quality ~ ph")
+scatter.smooth(x=wine$alcohol, y=wine$quality, main="quality ~ alcohol")
+```
+
+
+
+```{r corrplot}
+M <- cor(wine %>%  select(-type, -total_sulfur_dioxide))
+corrplot(M, method = "number")
+```
+
+# creating models
+```{r}
+mod1 <- lm(quality ~ . -type, data = wine)
+summary(mod1)
+```
+```{r}
+#trim non significant values
+mod2 <- lm(quality ~ . -type -fixed_acidity -free_sulfur_dioxide -total_sulfur_dioxide -p_h -alcohol, data = wine)
+summary(mod2)
+```
+```{r}
+mod3 <- lm(formula = quality ~ . -type -citric_acid -fixed_acidity -free_sulfur_dioxide -total_sulfur_dioxide -p_h -alcohol, data = wine)
+summary(mod3)
+```
+mod2 has a higher adj-rsq val than model3 making it marginally better?
+
+```{r}
+anova(mod2, mod3)
+```
+
+# Classifying -> predicting WINE Type using different ML algorithms...
+
+```{r test_train}
+#different sample data
+set.seed(9)
+
+#alter quality_label
+# > 7 good
+# < 7 bad
+
+test_index <- createDataPartition(y = wine$type, 
+                                  times = 1, 
+                                  p = 0.1, 
+                                  list = FALSE)
+
+# Train and test sets for wine type
+train <- wine[-test_index,]
+test  <- wine[test_index,]
+```
+
+# check values using backwards selection
+```{r}
+mod1_type <- train %>%
+    mutate(type = ifelse(type == "Red", 1, 0)) %>%
+    glm(type ~ . , data = .)
+
+summary(mod1_type)
+```
+```{r}
+mod2_type <- train %>%
+    mutate(type = ifelse(type == "Red", 1, 0)) %>%
+    glm(type ~ . -alcohol, data = .)
+
+summary(mod2_type)
+```
+```{r}
+mod3_type <- train %>%
+    mutate(type = ifelse(type == "Red", 1, 0)) %>%
+    glm(type ~ . -alcohol -free_sulfur_dioxide -p_h, data = .)
+
+summary(mod3_type) 
+```
+
+model2 has the best AIC score
+
+
+```{r}
+prediction = predict(mod2_type, newdata = test)
+#table(test$type, prediction > 0.5)
+
+# Convert the predicted value to factor
+pv_converted <- factor(ifelse(prediction > 0.5, "Red", "White"))
+
+confusionMatrix(pv_converted, test$type)
+```
+### trying a more specific lm model
+```{r}
+mod4_type <- train %>%
+    mutate(type = ifelse(type == "Red", 1, 0)) %>%
+    glm(type ~ total_sulfur_dioxide + chlorides + volatile_acidity, data = .)
+
+summary(mod4_type) 
+```
+```{r}
+anova(mod2_type, mod4_type)
+```
+model 2 should gain better results, however there is a big size difference in the formulas.
+lets test
+
+```{r}
+prediction2 = predict(mod4_type, newdata = test)
+#table(test$type, prediction > 0.5)
+
+# Convert the predicted value to factor
+pv_converted2 <- factor(ifelse(prediction > 0.5, "Red", "White"))
+
+confusionMatrix(pv_converted2, test$type)
+```
+
+model2_type : Accuracy : 0.9523
+model4_type : Accuracy : 0.9523
+
+same accuracy between both models...
+
+## lets try KNN clasifier
+```{r}
+# Train
+fit_knn <- knn3(formula = type ~ total_sulfur_dioxide + chlorides + volatile_acidity, data = train, k = 5)
+
+# Predict
+y_knn <- predict(object = fit_knn, 
+                 newdata = test, 
+                 type ="class")
+
+# Compare the results: confusion matrix
+confusionMatrix(data = y_knn, 
+                       reference = test$type, 
+                       positive = "Red")
+```
+
+same formula as model4: yields a better result -> 0.9677
