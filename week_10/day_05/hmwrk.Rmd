@@ -131,10 +131,6 @@ anova(mod2, mod3)
 #different sample data
 set.seed(9)
 
-#alter quality_label
-# > 7 good
-# < 7 bad
-
 test_index <- createDataPartition(y = wine$type, 
                                   times = 1, 
                                   p = 0.1, 
