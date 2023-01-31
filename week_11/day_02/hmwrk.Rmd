@@ -1,0 +1,131 @@
+---
+title: "Decision trees homework"
+output: html_notebook
+---
+
+```{r setup}
+library(rpart)
+library(rpart.plot)
+library(tidyverse)
+library(caret)
+library(ranger)
+library(GGally)
+library(janitor)
+
+
+titanic_set <- read_csv('data/titanic_decision_tree_data.csv')
+
+shuffle_index <- sample(1:nrow(titanic_set))
+
+# shuffle the data so class order isn't in order - need this for training/testing split later on 
+titanic_set <- titanic_set[shuffle_index, ]
+```
+
+# 1
+## 1.1
+```{r}
+titanic_clean <- titanic_set %>%
+    filter(survived %in% c(0, 1)) %>%
+    mutate(
+        sex = as.factor(sex),
+        age_status = as.factor(if_else(age <= 16, "child", "adult")),
+        class = factor(
+            pclass,
+            levels = c(3, 2, 1),
+            labels = c("Lower", "Middle", "Upper")
+        ),
+        survived_flag = factor(
+            survived,
+            levels = c(0, 1),
+            labels = c("No", "Yes")
+        ),
+        port_embarkation = as.factor(embarked)
+    ) %>%
+    select(sex,
+           age,
+           age_status,
+           class,
+           port_embarkation,
+           sib_sp,
+           parch,
+           survived_flag) %>%
+    na.omit()
+
+titanic_clean
+```
+
+## 1.2
+```{r warning=FALSE}
+titanic_clean %>% 
+  select(survived_flag, everything()) %>% 
+  ggpairs(progress = FALSE)
+```
+
+
+```{r}
+ggplot(titanic_clean, aes(age, fill = survived_flag)) +
+    geom_histogram() +
+    facet_grid(. ~ sex)
+```
+
+
+```{r}
+ggplot(titanic_clean, aes(age, fill = survived_flag)) +
+    geom_histogram() +
+    facet_grid(. ~ class)
+```
+
+
+
+By the looks of the ggplot it appears that `females` survived more.. 
+`age` and `age_status`  more older people tended to survived more than other ages brackets
+and `class` looks like people from the upper class survived more.
+
+## 1.3
+```{r}
+set.seed(123)
+test_index <- createDataPartition(y = titanic_clean$survived_flag, 
+                                  times = 1, 
+                                  p = 0.2, 
+                                  list = FALSE)
+
+# Train and test sets for wine type
+train <- titanic_clean[-test_index,]
+test  <- titanic_clean[test_index,]
+```
+
+```{r}
+train %>% 
+  tabyl(survived_flag)
+```
+
+```{r}
+test %>% 
+  tabyl(survived_flag)
+```
+
+The proportion of survived is approximately even between the training and testing data sets.
+
+## 1.4
+```{r}
+titanic_fit <- rpart(formula = survived_flag ~ .,
+                     data = train,
+                     method = "class")
+```
+
+## 1.5
+```{r}
+rpart.plot(titanic_fit,
+           yesno = 2,
+           fallen.leaves = TRUE,
+           digits = 4,
+           type = 4,
+           extra = 101)
+```
+
+## 1.6
+```{r}
+prediction = predict(titanic_fit, newdata = test, type = 'class')
+confusionMatrix(prediction, test$survived_flag)
+```
+
