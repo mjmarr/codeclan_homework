@@ -1,0 +1,122 @@
+---
+title: "homework"
+output: html_notebook
+---
+
+# load data/libs
+```{r setup}
+library(tidyverse)
+library(broom)
+library(factoextra)
+
+mall <- read_csv("data/mall_customers.csv") %>% janitor::clean_names()
+```
+
+# explore data
+
+```{r}
+skimr::skim(mall)
+```
+
+```{r}
+glimpse(mall)
+```
+
+```{r}
+mall_clean <- mall %>% 
+    select(annual_income_k, spending_score_1_100)
+mall_clean
+```
+
+```{r}
+ggplot(mall_clean, aes(x = annual_income_k,
+                       y = spending_score_1_100)) +
+    geom_point()
+```
+It appears that there is five possible groups...
+
+- low annual income ~ low spending score
+- low annual income ~ high spending score
+- median annual income ~ median spending score
+- high annual income ~ low spending score
+- high annual income ~ high spending score
+
+# find k values
+
+```{r}
+fviz_nbclust(mall_clean, 
+             kmeans, 
+             method = "wss", 
+             nstart = 25)
+```
+This graph is fairly smooth curve - rather than a defined kink.
+
+```{r}
+fviz_nbclust(mall_clean, 
+             kmeans, 
+             method = "silhouette", 
+             nstart = 25)
+```
+Silhouette method is giving k = 5.
+
+```{r}
+fviz_nbclust(mall_clean, 
+             kmeans, 
+             method = "gap_stat", 
+             nstart = 25)
+```
+This gives a result of k = 1.
+
+We get quite different results for each of the methods and for elbow and silhouette many values of k give quite similar results. When there isn’t a clear optimal value of k, and where you don’t have an intuitive value of k before hand, can be a sign data is not well suited for k-means clustering.
+
+#automated process to check k value 1-6
+```{r}
+#scale values? don't think this change anything
+mall_scale <- mall_clean %>% 
+  mutate(across(everything(), scale))
+```
+
+
+```{r}
+# function produes a ggplot coloured clusters -> k_val changes the kmeans value...
+auto_plots <- function(k_val){
+    kmean_fnc <- kmeans(mall_scale, centers = k_val, 
+                   nstart = 25)
+    
+    ret_plot <- augment(kmean_fnc, mall_clean) %>%
+        ggplot(aes(annual_income_k, spending_score_1_100, colour = .cluster)) +
+        geom_point()+
+        ggtitle(paste0("k-means value : ", k_val))
+    
+    return(ret_plot)
+}
+
+for (x in 1:6) {
+    i <- auto_plots(x)
+    plot(i)
+}
+
+rm(x, i)#remove pointer variables for the loop/function combo
+```
+
+Based on the graph generated above it appears that a K value of 5, visually looks alright to display the potential groups identified in the initial exploration of the data:
+
+- low annual income ~ low spending score
+- low annual income ~ high spending score
+- median annual income ~ median spending score
+- high annual income ~ low spending score
+- high annual income ~ high spending score
+
+Clustering seems to be a good fit for this data set based on the produced graphs above.
+
+```{r}
+plot(auto_plots(5))
+```
+
+Possible labels for these specific clusters could be for k-value 5:
+
+cluster 1[red]: Careful spenders
+cluster 2[olive]: Middle Income
+cluster 3[green]: Living beyond means/ Impulse buyers
+cluster 4[blue]: Affluent 
+cluster 5[pink]: Frugal / Nearing retirement?
