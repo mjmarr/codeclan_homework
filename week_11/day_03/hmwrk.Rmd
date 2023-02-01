@@ -71,14 +71,14 @@ We get quite different results for each of the methods and for elbow and silhoue
 
 #automated process to check k value 1-6
 ```{r}
-#scale values? don't think this change anything
+#scale values? don't think this changes anything
 mall_scale <- mall_clean %>% 
   mutate(across(everything(), scale))
 ```
 
 
 ```{r}
-# function produes a ggplot coloured clusters -> k_val changes the kmeans value...
+# function produces a ggplot coloured clusters -> k_val changes the kmeans value...
 auto_plots <- function(k_val){
     kmean_fnc <- kmeans(mall_scale, centers = k_val, 
                    nstart = 25)
