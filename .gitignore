@@ -55,3 +55,6 @@ week_01/day_1/file_to_ignore.txt
 
 #ignore html
 *.html
+
+#ignore python/jupyter checkpoints
+.ipynb_checkpoints
